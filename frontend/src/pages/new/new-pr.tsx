@@ -1,54 +1,153 @@
-import { Breadcrumb, BreadcrumbItem, BreadcrumbLink } from "./breadcrumb";
-import { Card, CardHeader, CardTitle, CardContent } from "./ui/card";
-import { useFrappeGetDocCount, useFrappeGetDocList, useFrappeGetDoc, useFrappeCreateDoc } from "frappe-react-sdk";
-import { HardHat, UserRound, PersonStanding, PackagePlus } from "lucide-react";
-import { TailSpin } from "react-loader-spinner";
+// import { Breadcrumb, BreadcrumbItem, BreadcrumbLink } from "./breadcrumb";
+// import { Card, CardHeader, CardTitle } from "./ui/card";
+import { useFrappeGetDoc, useFrappeCreateDoc } from "frappe-react-sdk";
+import { PackagePlus } from "lucide-react";
+// import { TailSpin } from "react-loader-spinner";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useState, useEffect } from "react"
-import DropdownMenu from './dropdown';
-import DropdownMenu2 from './dropdown2';
+// import DropdownMenu from './dropdown';
+// import DropdownMenu2 from './dropdown2';
 import { ArrowLeft } from 'lucide-react';
-import ReactSelect from 'react-select';
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "./ui/dialog"
-import { Button } from "./ui/button"
-import { CirclePlus } from 'lucide-react';
+// import ReactSelect from 'react-select';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger, DialogClose } from "../../components/ui/dialog"
+import { Button } from "../../components/ui/button"
+// import { CirclePlus } from 'lucide-react';
 import { Pencil } from 'lucide-react';
 
 
-import imageUrl from "@/assets/user-icon.jpeg"
-import { MainLayout } from "./layout/main-layout";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
-import { Input } from "./ui/input";
-import { Label } from "./ui/label";
+// import imageUrl from "@/assets/user-icon.jpeg"
+import { MainLayout } from "../../components/layout/main-layout";
+// import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./ui/select";
+// import { Input } from "./ui/input";
+// import { Label } from "./ui/label";
+import { Projects } from "@/types/NirmaanStack/Projects";
+// import ItemSelect from "./custom-select/item-select";
+import WorkPackageSelect from "../../components/custom-select/work-package-select";
+import CategorySelect from "../../components/custom-select/category-select";
+import AddItem from "../../components/item/add-item";
+import CreateItem from "../../components/item/create-item";
+import useProcurementRequest from "@/states/procurement-request-state";
+
+type StateType = {
+    project: string | undefined;
+    work_package: string;
+    procurement_list: { list: Object[] };
+    category_list: { list: string[] };
+    project_lead: string; // Adjusted to accept undefined if necessary
+    procurement_executive: string; // Adjusted to accept undefined if necessary
+};
 
 export const NewPR = () => {
 
-    const { id } = useParams<{ id: string }>()
+    const { id } = useParams<{ id: string }>();
+
+    const { data: project, isLoading: project_loading, error: project_error } = useFrappeGetDoc<Projects>("Projects", id);
+
     const navigate = useNavigate();
 
-    const { data: project_count, isLoading: project_count_loading, error: project_count_error } = useFrappeGetDocCount("Projects");
-    const { data: wp_list, isLoading: wp_list_loading, error: wp_list_error } = useFrappeGetDocList("Work Packages",
-        {
-            fields: ['work_package_name', "work_package_image"]
-        });
-    const { data: category_list, isLoading: category_list_loading, error: category_list_error } = useFrappeGetDocList("Category",
-        {
-            fields: ['category_name', 'work_package']
-        });
-    const { data: item_list, isLoading: item_list_loading, error: item_list_error, mutate: item_list_mutate } = useFrappeGetDocList("Items",
-        {
-            fields: ['name', 'item_name', 'unit_name', 'category'],
-            limit: 1000
-        });
-    const { data: project_list, isLoading: project_list_loading, error: project_list_error } = useFrappeGetDocList("Projects",
-        {
-            fields: ['name', 'project_name', 'project_address', 'project_lead', 'procurement_lead']
-        });
-    const { data: procurement_request_list, isLoading: procurement_request_list_loading, error: procurement_request_list_error } = useFrappeGetDocList("Procurement Requests",
-        {
-            fields: ['name', 'owner', 'project', 'work_package', 'procurement_list', 'creation', 'workflow_state'],
-            limit: 100
-        });
+    const [page, setPage] = useState<string>('wplist')
+
+    const [orderData, setOrderData] = useState<StateType>({
+        project: id,
+        work_package: '',
+        procurement_list: {
+            list: []
+        },
+        category_list: {
+            list: []
+        },
+        project_lead: '',
+        procurement_executive: ''
+    })
+
+    const orderDataZ = useProcurementRequest(store => store);
+
+
+    useEffect(() => {
+        if (project) {
+            setOrderData(prevData => ({
+                ...prevData,
+                project_lead: project.project_lead,
+                procurement_executive: project.procurement_lead
+            }));
+            orderDataZ.setProject(id);
+
+        }
+    }, [project]);
+
+    // const [categories, setCategories] = useState<{ list: Category[] }>({ list: [] });
+
+    const handleWPClick = (wp: string, value: string) => {
+        // setOrderData({
+        //     project: id,
+        //     procurement_list: {
+        //         list: []
+        //     },
+        //     category_list: {
+        //         list: []
+        //     },
+
+        // });
+        // setCategories({ list: [] });
+        setOrderData(prevData => ({
+            ...prevData,
+            work_package: wp,
+            category_list: { list: [] },
+            procurement_list: { list: [] }
+        }));
+        orderDataZ.resetCategories();
+        orderDataZ.setWorkPackage(wp);
+
+        setPage(value);
+    };
+
+    const [curCategory, setCurCategory] = useState<string>('')
+
+    const handleCategoryClick = (category: string, value: string) => {
+        addCategory(category);
+        setPage(value);
+        // setUnit('')
+
+        console.log(curCategory)
+    };
+
+    const addCategory = (categoryName: string) => {
+        setCurCategory(categoryName);
+        // const isDuplicate = categories.list.some(category => category.name === categoryName);
+        // if (!isDuplicate) {
+        //     setCategories(prevState => ({
+        //         ...prevState,
+        //         list: [...prevState.list, { name: categoryName }]
+        //     }));
+        // }
+        // orderDataZ.setCategories(categoryName)
+        // console.log(curCategory, categories)
+    };
+
+    // const { data: wp_list, isLoading: wp_list_loading, error: wp_list_error } = useFrappeGetDocList("Work Packages",
+    //     {
+    //         fields: ['work_package_name', "work_package_image"]
+    //     });
+    // const { data: category_list, isLoading: category_list_loading, error: category_list_error } = useFrappeGetDocList("Category",
+    //     {
+    //         fields: ['category_name', 'work_package']
+    //     });
+    // const { data: item_list, isLoading: item_list_loading, error: item_list_error, mutate: item_list_mutate } = useFrappeGetDocList("Items",
+    //     {
+    //         fields: ['name', 'item_name', 'unit_name', 'category'],
+    //         limit: 1000
+    //     });
+    // const { data: project_list, isLoading: project_list_loading, error: project_list_error } = useFrappeGetDocList("Projects",
+    //     {
+    //         fields: ['name', 'project_name', 'project_address', 'project_lead', 'procurement_lead']
+    //     });
+
+
+    // const { data: procurement_request_list, isLoading: procurement_request_list_loading, error: procurement_request_list_error } = useFrappeGetDocList("Procurement Requests",
+    //     {
+    //         fields: ['name', 'owner', 'project', 'work_package', 'procurement_list', 'creation', 'workflow_state'],
+    //         limit: 100
+    //     });
 
     // console.log(category_list);
     // console.log(item_list);
@@ -58,68 +157,25 @@ export const NewPR = () => {
         name: string;
     }
 
-    const [page, setPage] = useState<string>('wplist')
     const [curItem, setCurItem] = useState<string>('')
-    const [curCategory, setCurCategory] = useState<string>('')
+
     const [unit, setUnit] = useState<string>('')
     const [quantity, setQuantity] = useState<number>()
-    const [item_id, setItem_id] = useState<string>('');
-    const [categories, setCategories] = useState<{ list: Category[] }>({ list: [] });
+    // const [item_id, setItem_id] = useState<string>('');
 
-    const addWorkPackage = (wpName: string) => {
-        setOrderData(prevData => ({
-            ...prevData,
-            work_package: wpName
-        }));
-    };
-    const addCategory = (categoryName: string) => {
-        setCurCategory(categoryName);
-        const isDuplicate = categories.list.some(category => category.name === categoryName);
-        if (!isDuplicate) {
-            setCategories(prevState => ({
-                ...prevState,
-                list: [...prevState.list, { name: categoryName }]
-            }));
-        }
-        console.log(curCategory, categories)
-    };
 
-    const [orderData, setOrderData] = useState({
-        project: id,
-        work_package: '',
-        procurement_list: {
-            list: []
-        },
-        category_list: {
-            list: []
-        }
-    })
+
+
+
+
     // const handleProjectClick = (project:string , value: string) => {
     //     addProject(project);
     //     setPage(value);
     //     console.log(page);
     //     console.log(orderData);
     // };
-    const handleWPClick = (wp: string, value: string) => {
-        setOrderData({
-            project: id,
-            procurement_list: {
-                list: []
-            },
-            category_list: {
-                list: []
-            }
-        });
-        setCategories({ list: [] });
-        addWorkPackage(wp);
-        setPage(value);
-    };
-    const handleCategoryClick = (category: string, value: string) => {
-        addCategory(category);
-        setPage(value);
-        setUnit('')
 
-    };
+
 
     const handleCategoryClick2 = (category: string) => {
         addCategory(category);
@@ -129,71 +185,73 @@ export const NewPR = () => {
     const handleClick = (value: string) => {
         setPage(value);
     };
-    const item_lists: string[] = [];
-    const item_options: string[] = [];
-    const project_lists: string[] = [];
-    if (curCategory) {
-        item_list?.map((item) => {
-            if (item.category === curCategory) item_options.push({ value: item.item_name, label: item.item_name })
-        })
-    }
-    if (project_list?.length != project_lists.length) {
-        project_list?.map((item) => {
-            project_lists.push(item.project_name)
-        })
-    }
+    // const item_lists: string[] = [];
+    // const item_options: string[] = [];
+    //const project_lists: string[] = [];
+    // if (curCategory) {
+    //     item_list?.map((item) => {
+    //         if (item.category === curCategory) item_options.push({ value: item.item_name, label: item.item_name })
+    //     })
+    // }
+    // if (project_list?.length != project_lists.length) {
+    //     project_list?.map((item) => {
+    //         project_lists.push(item.project_name)
+    //     })
+    // }
 
-    const handleSelect = (selectedItem: string) => {
-        console.log('Selected item:', selectedItem);
-        setCurItem(selectedItem)
-        item_list?.map((item) => {
-            if (item.item_name == selectedItem) {
-                setUnit(item.unit_name)
-            }
-        })
-    };
-    const handleChange = (selectedItem) => {
-        console.log('Selected item:', selectedItem);
-        setCurItem(selectedItem.value)
-        item_list?.map((item) => {
-            if (item.item_name == selectedItem.value) {
-                setUnit(item.unit_name)
-            }
-        })
-    }
+    // const handleSelect = (selectedItem: string) => {
+    //     console.log('Selected item:', selectedItem);
+    //     setCurItem(selectedItem)
+    //     item_list?.map((item) => {
+    //         if (item.item_name == selectedItem) {
+    //             setUnit(item.unit_name)
+    //         }
+    //     })
+    // };
+    // const handleChange = (selectedItem) => {
+    //     console.log('Selected item:', selectedItem);
+    //     setCurItem(selectedItem.value)
+    //     item_list?.map((item) => {
+    //         if (item.item_name == selectedItem.value) {
+    //             setUnit(item.unit_name)
+    //         }
+    //     })
+    // }
 
-    const handleAdd = () => {
-        if (curItem && Number(quantity)) {
-            let itemIdToUpdate = null;
-            item_list.forEach((item) => {
-                if (item.item_name === curItem) {
-                    itemIdToUpdate = item.name;
-                }
-            });
-            if (itemIdToUpdate) {
-                const curRequest = [...orderData.procurement_list.list];
-                const curValue = {
-                    item: curItem,
-                    name: itemIdToUpdate,
-                    unit: unit,
-                    quantity: Number(quantity),
-                    category: curCategory,
-                };
-                const isDuplicate = curRequest.some((item) => item.item === curItem);
-                if (!isDuplicate) {
-                    curRequest.push(curValue);
-                }
-                setOrderData((prevState) => ({
-                    ...prevState,
-                    procurement_list: {
-                        list: curRequest,
-                    },
-                }));
-                setUnit('');
-                setQuantity(0);
-                setItem_id('');
-            }
+    const handleAdd = (itemObject) => {
+        // if (curItem && Number(quantity)) {
+        //     let itemIdToUpdate = null;
+        //     item_list.forEach((item) => {
+        //         if (item.item_name === curItem) {
+        //             itemIdToUpdate = item.name;
+        //         }
+        //     });
+        //     if (itemIdToUpdate) {
+        const curRequest = [...orderData.procurement_list.list];
+        const curValue = {
+            item: itemObject.item,
+            name: itemObject.name,
+            unit: itemObject.unit,
+            quantity: itemObject.quantity,
+            category: curCategory,
+        };
+        const isDuplicate = curRequest.some((item) => item.item === curValue.item);
+        if (!isDuplicate) {
+            curRequest.push(curValue);
+            setOrderData((prevState) => ({
+                ...prevState,
+                procurement_list: {
+                    list: curRequest,
+                },
+            }));
         }
+        orderDataZ.addItemToProcurementList(itemObject, curCategory);
+        console.log('From HandleAdd: ', orderData)
+        // setUnit('');
+        // setQuantity(0);
+        //         setItem_id('');
+        //     }
+        // }
     };
 
     useEffect(() => {
@@ -210,19 +268,21 @@ export const NewPR = () => {
                 list: newCategories
             },
         }));
+
+        // ZUSTAND WAY
+        const newCategoriesZ = [];
+        orderDataZ.procurement_list.list.map((item) => {
+            const isDuplicate = newCategoriesZ.some(category => category.name === item.category);
+            if (!isDuplicate) {
+                newCategoriesZ.push({ name: item.category })
+            }
+        });
+        orderDataZ.setCategories(newCategoriesZ);
+
+
     }, [orderData.procurement_list]);
 
-    useEffect(() => {
-        const curProject = project_list?.find(proj => proj.name === id);
 
-        if (curProject) {
-            setOrderData(prevData => ({
-                ...prevData,
-                project_lead: curProject.project_lead,
-                procurement_executive: curProject.procurement_lead
-            }));
-        }
-    }, [project_list, orderData]);
 
 
     const { createDoc: createDoc, loading: loading, isCompleted: submit_complete, error: submit_error } = useFrappeCreateDoc()
@@ -230,13 +290,14 @@ export const NewPR = () => {
         console.log("orderData2", orderData)
         createDoc('Procurement Requests', orderData)
             .then(() => {
-                console.log(orderData)
-                navigate("/")
+                console.log(orderData);
+                console.log()
+                navigate("/");
             }).catch(() => {
                 console.log("submit_error", submit_error)
             })
     }
-    const handleAddItem = () => {
+    const handleAddItem = (curItem, unit) => {
         const itemData = {
             category: curCategory,
             unit_name: unit,
@@ -249,7 +310,7 @@ export const NewPR = () => {
                 setUnit('')
                 setCurItem('')
                 setPage('itemlist')
-                item_list_mutate()
+                // item_list_mutate()
             }).catch(() => {
                 console.log("submit_error", submit_error)
             })
@@ -269,12 +330,15 @@ export const NewPR = () => {
             }
             return curValue;
         });
-        if(quantity){setOrderData((prevState) => ({
-            ...prevState,
-            procurement_list: {
-                list: curRequest,
-            },
-        }));}
+        if (newQuantity) {
+            setOrderData((prevState) => ({
+                ...prevState,
+                procurement_list: {
+                    list: curRequest,
+                },
+            }));
+        };
+        orderDataZ.changeItemFromProcurementList(itemName, newQuantity);
         setQuantity(0)
         setCurItem('')
     };
@@ -287,29 +351,34 @@ export const NewPR = () => {
                 list: curRequest
             }
         }));
+        orderDataZ.deleteItemFromProcurementList(item);
         setQuantity(0)
         setCurItem('')
     }
 
+    if (project_loading) return <h1>LOADING</h1>
+    if (project_error) return <h1>ERROR</h1>
+
     return (
         <MainLayout>
-            {page == 'wplist' && <div className="flex-1 md:space-y-4 p-4 md:p-8 pt-6">
-                <div className="flex-col items-center pt-1 pb-4">
-                    {/* <ArrowLeft onClick={() => setPage('projectlist')} /> */}
+            {page == 'wplist' && <div className="flex-1 md:space-y-4 p-4 md:p-6 pt-6">
+                <div className="flex items-center pt-1 pb-4">
+                    <ArrowLeft onClick={() => navigate("/")} />
                     <h3 className="text-base pl-2 font-bold tracking-tight">Select Work Package</h3>
                 </div>
                 <div className="grid grid-cols-2 md:grid-cols-7 gap-4">
-                    {wp_list?.map((item) => (
+                    {/* {wp_list?.map((item) => (
                         <Card className="flex flex-col items-center shadow-none text-center border border-grey-500 hover:animate-shadow-drop-center" onClick={() => handleWPClick(item.work_package_name, 'categorylist')}>
                             <CardHeader className="flex flex-col items-center justify-center space-y-0 p-2">
                                 <CardTitle className="flex flex-col items-center text-sm font-medium text-center">
                                     <img className="h-32 md:h-36 w-32 md:w-36 rounded-lg p-0" src={item.work_package_image === null ? imageUrl : item.work_package_image} alt="Project" />
                                     <span>{item.work_package_name}</span>
                                 </CardTitle>
-                                {/* <HardHat className="h-4 w-4 text-muted-foreground" /> */}
+                                
                             </CardHeader>
                         </Card>
-                    ))}
+                    ))} */}
+                    <WorkPackageSelect handleWPClick={handleWPClick} />
                 </div>
             </div>}
             {page == 'categorylist' && <div className="flex-1 md:space-y-4 p-4 md:p-8 pt-6">
@@ -318,7 +387,7 @@ export const NewPR = () => {
                     <h2 className="text-base pl-2 font-bold tracking-tight">Select Category</h2>
                 </div>
                 <div className="grid grid-cols-2 md:grid-cols-7 gap-4">
-                    {category_list?.map((item) => {
+                    {/* {category_list?.map((item) => {
                         if (item.work_package === orderData.work_package) {
                             return (
                                 <Card className="flex flex-col items-center shadow-none border border-grey-500 hover:animate-shadow-drop-center" onClick={() => handleCategoryClick(item.category_name, 'itemlist')}>
@@ -327,16 +396,17 @@ export const NewPR = () => {
                                             <img className="h-32 md:h-36 w-32 md:w-36 rounded-lg p-0" src={imageUrl} alt="Project" />
                                             <span>{item.category_name}</span>
                                         </CardTitle>
-                                        {/* <HardHat className="h-4 w-4 text-muted-foreground" /> */}
                                     </CardHeader>
                                 </Card>
                             );
                         }
-                    })}
+                    })} */}
+                    <CategorySelect data={orderData} handleCategoryClick={handleCategoryClick} />
                 </div>
             </div>}
             {page == 'itemlist' && <div className="flex-1 space-x-2 space-y-2.5 md:space-y-4 p-2 md:p-12 pt-6">
                 {/* <button className="font-bold text-md" onClick={() => setPage('categorylist')}>Add Items</button> */}
+                {console.log("FROM ZUSTAND ITEM LIST:", orderDataZ.generateProcuremntRequestObject())}
                 <div className="flex items-center pt-1 pb-4">
                     <ArrowLeft onClick={() => setPage('categorylist')} />
                     <h2 className="text-base pl-2 font-bold tracking-tight">Add Items</h2>
@@ -344,7 +414,7 @@ export const NewPR = () => {
                 <div className="flex justify-between md:justify-normal md:space-x-40">
                     <div className="">
                         <h5 className="text-gray-500 text-xs md:test-base">Project</h5>
-                        <h3 className=" font-semibold text-sm md:text-lg">{project_list?.find((item) => item.name === id).project_name}</h3>
+                        <h3 className=" font-semibold text-sm md:text-lg">{project?.project_name}</h3>
                     </div>
                     <div className="">
                         <h5 className="text-gray-500 text-xs md:test-base">Package</h5>
@@ -354,11 +424,11 @@ export const NewPR = () => {
                 <div className="flex justify-between">
                     <button className="text-sm py-2 md:text-lg text-blue-400 flex" onClick={() => setPage('categorylist')}><PackagePlus className="w-5 h-5 mt- pr-1" />Change Category</button>
                 </div>
-                <h3 className="font-bold">{curCategory}</h3>
+                {/* <h3 className="font-bold">{curCategory}</h3>
                 <div className="flex space-x-2">
                     <div className="w-1/2 md:w-2/3">
                         <h5 className="text-xs text-gray-400">Items</h5>
-                        {/* <DropdownMenu items={item_lists} onSelect={handleSelect} /> */}
+                        
                         <ReactSelect options={item_options} onChange={handleChange} />
                     </div>
                     <div className="flex-1">
@@ -376,10 +446,10 @@ export const NewPR = () => {
                         <Button variant="outline" className="left-0 border rounded-lg py-1 border-red-500 px-8" onClick={() => handleAdd()}>Add</Button>
                         :
                         <Button disabled={true} variant="secondary" className="left-0 border rounded-lg py-1 border-red-500 px-8" >Add</Button>}
-                    {/* <Button variant="outline" className="left-0 border rounded-lg py-1 border-red-500 px-8" onClick={() => handleAdd()}>Add</Button> */}
-                </div>
+                </div> */}
+                <AddItem curCategory={curCategory} handleCreateItem={handleCreateItem} handleAdd={handleAdd} />
                 <div className="text-xs font-thin text-rose-700">Added Items</div>
-                {categories.list?.map((cat) => {
+                {orderData.category_list?.list?.map((cat) => {
                     return <div className="container mx-0 px-0">
                         <h3 className="text-sm font-semibold py-2">{cat.name}</h3>
                         <table className="table-auto w-[95%]">
@@ -400,31 +470,31 @@ export const NewPR = () => {
                                             <td className="border-b-2 px-4 py-1 text-xs text-gray-700 text-center">{item.quantity}</td>
                                             <td className="border-b-2 px-4 py-1 text-xs text-gray-700 text-center">
                                                 <Dialog className="border border-gray-200">
-                                                    <DialogTrigger><Pencil className="w-4 h-4"/></DialogTrigger>
+                                                    <DialogTrigger><Pencil className="w-4 h-4" /></DialogTrigger>
                                                     <DialogContent>
                                                         <DialogHeader>
                                                             <DialogTitle className="text-left py-2">Edit Item</DialogTitle>
                                                             <DialogDescription className="flex flex-row">
                                                             </DialogDescription>
                                                             <DialogDescription className="flex flex-row">
-                                                            <div className="flex space-x-2">
-                                                                <div className="w-1/2 md:w-2/3">
-                                                                    <h5 className="text-xs text-gray-400 text-left">Items</h5>
-                                                                    <div className="h-[37px] w-full border rounded-lg px-1 pt-1 text-left">
-                                                                        {item.item}
+                                                                <div className="flex space-x-2">
+                                                                    <div className="w-1/2 md:w-2/3">
+                                                                        <h5 className="text-xs text-gray-400 text-left">Items</h5>
+                                                                        <div className="h-[37px] w-full border rounded-lg px-1 pt-1 text-left">
+                                                                            {item.item}
+                                                                        </div>
+                                                                    </div>
+                                                                    <div className="w-[30%]">
+                                                                        <h5 className="text-xs text-gray-400 text-left">UOM</h5>
+                                                                        <div className="h-[37px] w-full pt-1 text-left">
+                                                                            {item.unit}
+                                                                        </div>
+                                                                    </div>
+                                                                    <div className="w-[25%]">
+                                                                        <h5 className="text-xs text-gray-400 text-left">Qty</h5>
+                                                                        <input type="number" placeholder={item.quantity} className="min-h-[30px] rounded-lg w-full border p-2" onChange={(e) => setQuantity(e.target.value)} />
                                                                     </div>
                                                                 </div>
-                                                                <div className="w-[30%]">
-                                                                    <h5 className="text-xs text-gray-400 text-left">UOM</h5>
-                                                                    <div className="h-[37px] w-full pt-1 text-left">
-                                                                        {item.unit}
-                                                                    </div>
-                                                                </div>
-                                                                <div className="w-[25%]">
-                                                                    <h5 className="text-xs text-gray-400 text-left">Qty</h5>
-                                                                    <input type="number" placeholder={item.quantity} className="min-h-[30px] rounded-lg w-full border p-2" onChange={(e) => setQuantity(e.target.value)} />
-                                                                </div>
-                                                            </div>
                                                             </DialogDescription>
                                                             <DialogDescription className="flex flex-row justify-between">
                                                                 <div></div>
@@ -473,26 +543,17 @@ export const NewPR = () => {
                         <div className="text-lg font-bold py-2">Category: {curCategory}</div>
                         <button onClick={() => setPage("categorylist2")} className="text-blue-500 underline">Change Category</button>
                     </div>
-                    <label htmlFor="itemName" className="block text-sm font-medium text-gray-700">Item Name</label>
+                    <CreateItem handleAddItem={handleAddItem} />
+                    {/* <label htmlFor="itemName" className="block text-sm font-medium text-gray-700">Item Name</label>
                     <Input
                         type="text"
                         id="itemName"
                         value={curItem}
                         onChange={(e) => setCurItem(e.target.value)}
                         className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                    />
+                    /> */}
                 </div>
                 {/* <div className="mb-4">
-                    <label htmlFor="itemUnit" className="block text-sm font-medium text-gray-700">Item Unit</label>
-                    <input
-                        type="text"
-                        id="itemUnit"
-                        value={unit}
-                        onChange={(e) => setUnit(e.target.value)}
-                        className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                    />
-                </div> */}
-                <div className="mb-4">
                     <label htmlFor="itemUnit" className="block text-sm font-medium text-gray-700">Item Unit</label>
                     <Select onValueChange={(value) => setUnit(value)}>
                         <SelectTrigger className="w-[180px]">
@@ -517,7 +578,7 @@ export const NewPR = () => {
                             <SelectItem value="BUNDLE">BUNDLE</SelectItem>
                         </SelectContent>
                     </Select>
-                </div>
+                </div> */}
                 {/* <label htmlFor="itemUnit" className="block text-sm font-medium text-gray-700">Item Image</label>
                     <input
                         type="text"
@@ -526,7 +587,7 @@ export const NewPR = () => {
                         onChange={(e) => setUnit(e.target.value)}
                         className="mt-1 block w-full p-2 border border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                     /> */}
-                <Dialog>
+                {/* <Dialog>
                     <DialogTrigger asChild>
                         {(curItem && unit) ?
                             <Button className="fixed bottom-2 h-8 left-2 right-2 md:w-full bg-red-700 rounded-md text-sm text-white">Confirm and Submit</Button>
@@ -546,7 +607,7 @@ export const NewPR = () => {
                             <Button variant="secondary" onClick={() => handleAddItem()}>Confirm</Button>
                         </DialogClose>
                     </DialogContent>
-                </Dialog>
+                </Dialog> */}
             </div>}
             {page == 'categorylist2' && <div className="flex-1 space-x-2 md:space-y-4 p-4 md:p-8 pt-6">
                 <div className="flex items-center space-y-2">
@@ -554,7 +615,7 @@ export const NewPR = () => {
                     <h2 className="text-base pt-1 pl-2 pb-4 font-bold tracking-tight">Select Category</h2>
                 </div>
                 <div className="grid grid-cols-2 md:grid-cols-7 gap-4">
-                    {category_list?.map((item) => {
+                    {/* {category_list?.map((item) => {
                         if (item.work_package === orderData.work_package) {
                             return (
                                 <Card className="flex flex-col items-center shadow-none border border-grey-500 hover:animate-shadow-drop-center" onClick={() => handleCategoryClick2(item.category_name)}>
@@ -563,12 +624,12 @@ export const NewPR = () => {
                                             <img className="h-32 md:h-36 w-32 md:w-36 rounded-lg p-0" src={imageUrl} alt="Project" />
                                             <span>{item.category_name}</span>
                                         </CardTitle>
-                                        {/* <HardHat className="h-4 w-4 text-muted-foreground" /> */}
                                     </CardHeader>
                                 </Card>
                             );
                         }
-                    })}
+                    })} */}
+                    <CategorySelect data={orderData} handleCategoryClick={handleCategoryClick2} />
                 </div>
             </div>}
         </MainLayout>

@@ -19,30 +19,18 @@ export const ProjectManager = () => {
     const navigate = useNavigate();
     const userData = useUserData();
 
-    const { data: project_count, isLoading: project_count_loading, error: project_count_error } = useFrappeGetDocCount("Projects");
-    const { data: wp_list, isLoading: wp_list_loading, error: wp_list_error } = useFrappeGetDocList("Work Packages",
-        {
-            fields: ['work_package_name']
-        });
-    const { data: category_list, isLoading: category_list_loading, error: category_list_error } = useFrappeGetDocList("Category",
-        {
-            fields: ['category_name', 'work_package']
-        });
-    const { data: item_list, isLoading: item_list_loading, error: item_list_error } = useFrappeGetDocList("Items",
-        {
-            fields: ['name', 'item_name', 'unit_name', 'category'],
-            limit: 1000
-        });
     const { data: project_list, isLoading: project_list_loading, error: project_list_error } = useFrappeGetDocList("Projects",
         {
             fields: ['name', 'project_name', 'project_address', "project_manager"],
             filters: [["project_manager", "=", userData.user_id]]
         });
+
     const { data: procurement_request_list, isLoading: procurement_request_list_loading, error: procurement_request_list_error } = useFrappeGetDocList("Procurement Requests",
         {
             fields: ['name', 'owner', 'project', 'work_package', 'procurement_list', 'creation', 'workflow_state'],
             limit: 100
         });
+
     const [orderData, setOrderData] = useState({
         project: '',
         work_package: '',
@@ -53,6 +41,7 @@ export const ProjectManager = () => {
             list: []
         }
     })
+
     const { data: project_work_milestones_list, isLoading: project_work_milestones_list_loading, error: project_work_milestones_list_error, mutate: project_work_milestones_list_mutate } = useFrappeGetDocList("Project Work Milestones",
         {
             fields: ['name', 'project', 'work_package', 'scope_of_work', 'milestone', 'start_date', 'end_date', 'status'],
@@ -64,14 +53,8 @@ export const ProjectManager = () => {
     }
 
     const [page, setPage] = useState<string>('dashboard')
-    const [curItem, setCurItem] = useState<string>('')
-    const [curCategory, setCurCategory] = useState<string>('')
-    const [unit, setUnit] = useState<string>('')
-    const [quantity, setQuantity] = useState<number>()
-    const [item_id, setItem_id] = useState<string>('');
-    const [categories, setCategories] = useState<{ list: Category[] }>({ list: [] });
+
     const [curMilestone, setCurMilestone] = useState<string>('')
-    const [selectedOption, setSelectedOption] = useState('');
 
     const handleClick = (value: string) => {
         setPage(value);
@@ -122,12 +105,12 @@ export const ProjectManager = () => {
     return (
         <>
             {page == 'dashboard' && <div className="flex">
-                <div className="flex-1 space-x-2 md:space-y-4 p-4 md:p-8 pt-6">
-                    <div className="flex items-center space-y-2">
-                        <h2 className="text-base pt-1 pl-2 pb-4 font-bold tracking-tight">Dashboard</h2>
+                <div className="flex-1 space-x-2 md:space-y-4 p-4 md:p-6 pt-6">
+                    <div className="flex items-center pt-1 pb-4">
+                        <h2 className="text-base pl-2 font-bold tracking-tight">Dashboard</h2>
                     </div>
                     <div className="grid grid-cols-2 gap-4 border border-gray-100 rounded-lg p-4">
-                        <div className="border-red-400 rounded-lg border-2 flex flex-col items-center justify-center" onClick={() => setPage("newprlist")}>
+                        <div className="border-red-400 rounded-lg border-2 flex flex-col items-center justify-center" onClick={() => navigate("/procurement-request")}>
                             <p className="text-center py-6 font-bold text-gray-500">Procurement Requests</p>
                             <p className="text-center text-red-400 text-xl font-bold py-6 font-bold text-gray-500"></p>
                         </div>
@@ -138,7 +121,7 @@ export const ProjectManager = () => {
                     </div>
                 </div>
             </div>}
-            {page == 'newprlist' && <div className="flex-1 md:space-y-4 p-4 md:p-8 pt-6">
+            {page == 'newprlist' && <div className="flex-1 md:space-y-4 p-4 md:p-6 pt-6">
                 <div className="flex items-center pt-1 pb-4">
                     <ArrowLeft onClick={() => setPage('dashboard')} />
                     <h2 className="text-base pl-2  font-bold tracking-tight">Procurement Requests</h2>
@@ -160,10 +143,12 @@ export const ProjectManager = () => {
                             <tbody className="w-full">
                                 {procurement_request_list?.map((item) => {
                                     if (item.project === orderData.project) {
-                                        return <tr key={item.name} >
-                                            <td className="border-b-2 px-4 py-1 text-sm text-center"><Link to={`/pr-summary/${item.name}`}>{item.name.slice(-4)}</Link></td>
+                                        return <tr key={item.name}>
+
+                                            <td className="border-b-2 px-4 py-1 text-sm text-center"><Link to={`/pr-summary/${item.name}`} className="text-blue-500 underline-offset-1">{item.name.slice(-4)}</Link></td>
                                             <td className="border-b-2 px-4 py-1 text-sm text-center">{item.work_package}</td>
                                             <td className="border-b-2 px-4 py-1 text-sm text-center">{item.workflow_state}</td>
+
                                         </tr>
                                     }
                                 })}

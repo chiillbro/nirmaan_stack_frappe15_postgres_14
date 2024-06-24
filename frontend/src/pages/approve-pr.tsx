@@ -8,6 +8,8 @@ import { DataTable } from "@/components/data-table/data-table";
 import { DataTableColumnHeader } from "@/components/data-table/data-table-column-header";
 import { Badge } from "@/components/ui/badge";
 import { Projects } from "@/types/NirmaanStack/Projects";
+import LowestAmount from "@/components/item/lowest-amount";
+import { ProcurementRequests } from "@/types/NirmaanStack/ProcurementRequests";
 
 type PRTable = {
     name: string
@@ -19,7 +21,7 @@ type PRTable = {
 
 export const ApprovePR = () => {
     const userData = useUserData();
-    const { data: procurement_request_list, isLoading: procurement_request_list_loading, error: procurement_request_list_error } = useFrappeGetDocList("Procurement Requests",
+    const { data: procurement_request_list, isLoading: procurement_request_list_loading, error: procurement_request_list_error } = useFrappeGetDocList<ProcurementRequests>("Procurement Requests",
         {
             fields: ['name', 'workflow_state', 'owner', 'project', 'work_package', 'category_list', 'procurement_list', 'creation'],
             filters: [["project_lead", "=", userData.user_id], ["workflow_state", "=", "Pending"]],
@@ -145,7 +147,7 @@ export const ApprovePR = () => {
                 }
             },
             {
-                accessorKey: "total",
+                accessorKey: "procurement_list",
                 header: ({ column }) => {
                     return (
                         <DataTableColumnHeader column={column} title="Estimated Price" />
@@ -155,13 +157,15 @@ export const ApprovePR = () => {
                     return (
                         <div className="font-medium">
                             {getTotal(row.getValue("name"))}
+                            {/* {console.log("within table: ", row.getValue("procurement_list").list.map((item) => item.item))}
+                            <LowestAmount itemIds={(row.getValue("procurement_list").list.map((item) => item.item))} /> */}
                         </div>
                     )
                 }
             }
 
         ],
-        [project_values]
+        [project_values, procurement_request_list]
     )
 
     if (projects_loading || procurement_request_list_loading) return <h1>Loading</h1>

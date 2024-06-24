@@ -9,7 +9,7 @@ import {
     DialogClose
 } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
-import { useFrappeGetDocList, useFrappeUpdateDoc } from "frappe-react-sdk";
+import { useFrappeGetDoc, useFrappeGetDocList, useFrappeUpdateDoc } from "frappe-react-sdk";
 import { useParams, useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react"
 import { ArrowLeft } from 'lucide-react';
@@ -19,6 +19,7 @@ import ReactSelect from 'react-select';
 import { CirclePlus } from 'lucide-react';
 import { AlertDialog, AlertDialogAction, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { Pencil } from 'lucide-react';
+import { ProcurementRequests } from "@/types/NirmaanStack/ProcurementRequests";
 
 export const ProjectLeadComponent = () => {
     const { id } = useParams<{ id: string }>()
@@ -33,15 +34,8 @@ export const ProjectLeadComponent = () => {
             fields: ['name', 'item_name', 'unit_name', 'category'],
             limit: 1000
         });
-    const { data: project_list, isLoading: project_list_loading, error: project_list_error } = useFrappeGetDocList("Projects",
-        {
-            fields: ['name', 'project_name', 'project_address']
-        });
-    const { data: procurement_request_list, isLoading: procurement_request_list_loading, error: procurement_request_list_error } = useFrappeGetDocList("Procurement Requests",
-        {
-            fields: ['name', 'workflow_state', 'owner', 'project', 'work_package', 'procurement_list', 'creation', 'category_list'],
-            limit: 100
-        });
+
+    const { data: procurement_request, isLoading: procurement_request_loading, error: procurement_request_error } = useFrappeGetDoc<ProcurementRequests>("Procurement Requests", id);
 
     const { data: quote_data } = useFrappeGetDocList("Quotation Requests",
         {
@@ -94,7 +88,7 @@ export const ProjectLeadComponent = () => {
     })
     useEffect(() => {
         if (!orderData.project) {
-            procurement_request_list?.map(item => {
+            procurement_request?.map(item => {
                 if (item.name === id) {
                     setOrderData(item);
                     item.procurement_list.list.map((items) => {
@@ -117,7 +111,7 @@ export const ProjectLeadComponent = () => {
                 )
             }));
         }
-    }, [procurement_request_list]);
+    }, [procurement_request]);
 
     const item_lists: string[] = [];
     const item_options: string[] = [];

@@ -37,8 +37,9 @@ import Roles from './pages/roles'
 import Debug from './pages/debug'
 import { ApproveSelectVendor } from './pages/approve-select-vendor'
 import { ApproveVendor } from './pages/approve-vendor'
-import { NewPR } from './components/new-pr'
+import { NewPR } from './pages/new/new-pr'
 import { PRSummary } from './components/pr-summary'
+import ListPR from './pages/list/list-pr'
 // import { NewMilestone } from './components/new-milestone'
 
 
@@ -52,11 +53,10 @@ const router = createBrowserRouter(
 				<Route index element={<Dashboard />} />
 				<Route path="user-profile" element={<Profile />} />
 				<Route path="pdf" element={<PDF />} />
-				<Route path="/new-pr/:id" element={<NewPR />} />
 				<Route path="/pr-summary/:id" element={<PRSummary />} />
 				{/* <Route path="/milestone/:id" element={<NewMilestone/>} /> */}
-				<Route path="approve-order" element={<ApprovePR />} />
-				<Route path="/approve-order/:id" element={<ProjectLeadComponent />} />
+
+
 				<Route path="approve-vendor" element={<ApproveSelectVendor />} />
 				<Route path="approve-vendor/:orderId" element={<ApproveVendor />} />
 				<Route path="approve-sent-back" element={<ApproveSelectSentBack />} />
@@ -78,10 +78,6 @@ const router = createBrowserRouter(
 					<Route path="edit" element={<EditProject />} />
 					<Route
 						path=":projectId"
-						// loader={(({ params }) => {
-						// 	console.log(params.projectId)
-						// })}
-						// action={(({ params }) => {})}
 						lazy={() => import('@/pages/project')}
 					/>
 					<Route path="edit-one/:projectId" element={<EditProjectForm />} />
@@ -96,10 +92,20 @@ const router = createBrowserRouter(
 					<Route index element={<Customers />} />
 					{/* <Route path="edit" element={<EditCustomer />} /> */}
 				</Route>
-				{/* <Route index element={<ChannelRedirect />} />
-					<Route path="saved-messages" lazy={() => import('./components/feature/saved-messages/SavedMessages')} />
-					<Route path=":channelID" lazy={() => import('@/pages/ChatSpace')} />
-				</Route> */}
+
+
+				{/* <Route path="/new-pr/:id" element={<NewPR />} /> */}
+				{/* PROCUREMENT REQUEST SPECIFIC PATHS */}
+				<Route path="procurement-request">
+					<Route index element={<ListPR />} />
+					<Route path=":id/new" element={<NewPR />} />
+				</Route>
+
+
+				{/* PROJECT LEAD SPECIFIC PATHS */}
+				<Route path="approve-order" element={<ApprovePR />} />
+				<Route path="/approve-order/:id" element={<ProjectLeadComponent />} />
+
 				<Route path="debug">
 					<Route index element={<Debug />} />
 				</Route>

@@ -51,6 +51,7 @@ import Vendors from "@/pages/vendors/vendors";
 import WorkPackages from "@/pages/work-packages";
 import { ProtectedRoute } from "@/utils/auth/ProtectedRoute";
 import { ProjectManager } from "../layout/dashboards/dashboard-pm";
+import { ProjectChatContainer } from "@/pages/projects/realtime-chat/ProjectChatContainer";
 // --- End component imports ---
 
 export const appRoutes: RouteObject[] = [
@@ -144,6 +145,11 @@ export const appRoutes: RouteObject[] = [
                 ],
               },
             ],
+          },
+
+          {
+            path: "chat",
+            element: <ProjectChatContainer projectName="BENGALURU-PROJ-00051" />
           },
 
           // --- Service Requests Section ---

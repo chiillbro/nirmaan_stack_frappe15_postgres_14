@@ -33,6 +33,7 @@ import { CheckCircleIcon, ChevronDownIcon, ChevronRightIcon, CirclePlus, ListChe
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { TailSpin } from "react-loader-spinner";
 import { Link, useNavigate } from "react-router-dom";
+import { ProjectChatContainer } from "./realtime-chat/ProjectChatContainer";
 
 interface ProjectOverviewTabProps {
   projectData: any;
@@ -460,6 +461,8 @@ export const ProjectOverviewTab : React.FC<ProjectOverviewTabProps> = ({projectD
                       </CardDescription>
                     </CardContent>
                   </Card>
+
+                  <ProjectChatContainer projectName={projectData?.name} />
                 </div>
     )
 }

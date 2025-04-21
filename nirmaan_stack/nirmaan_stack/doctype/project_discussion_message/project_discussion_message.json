@@ -1,0 +1,133 @@
+{
+  "actions": [],
+  "allow_copy": 0,
+  "allow_import": 0,
+  "allow_rename": 0,
+  "autoname": "hash",
+  "creation": "2023-10-27 10:00:00.000000",
+  "description": "Stores messages related to a specific project discussion.",
+  "doctype": "DocType",
+  "document_type": "Transaction",
+  "engine": "InnoDB",
+  "field_order": [
+   "project",
+   "message_content",
+   "attachments_section",
+   "attachments",
+   "column_break_1",
+   "sender",
+   "timestamp"
+  ],
+  "fields": [
+   {
+    "fieldname": "project",
+    "fieldtype": "Link",
+    "label": "Project",
+    "mandatory": 1,
+    "options": "Projects",
+    "in_list_view": 1,
+    "reqd": 1,
+    "read_only_on_submit": 1,
+    "search_index": 1
+   },
+   {
+    "fieldname": "message_content",
+    "fieldtype": "Text",
+    "label": "Message Content"
+   },
+   {
+    "fieldname": "attachments_section",
+    "fieldtype": "Section Break",
+    "label": "Attachments"
+  },
+  {
+    "fieldname": "attachments",
+    "fieldtype": "Table",
+    "label": "Attachments",
+    "options": "File",
+    "cannot_add_rows": 1
+  },
+   {
+     "fieldname": "column_break_1",
+     "fieldtype": "Column Break"
+   },
+   {
+    "fieldname": "sender",
+    "fieldtype": "Link",
+    "label": "Sender",
+    "options": "User",
+    "mandatory": 1,
+    "read_only": 1,
+    "reqd": 1,
+    "default": "__user",
+    "in_list_view": 1
+   },
+   {
+    "fieldname": "timestamp",
+    "fieldtype": "Datetime",
+    "label": "Timestamp",
+    "read_only": 1,
+    "mandatory": 1,
+    "reqd": 1,
+    "default": "Now",
+    "in_list_view": 1
+   }
+  ],
+  "index_web_pages_for_search": 0,
+  "links": [],
+  "modified": "2023-10-27 10:05:00.000000",
+  "modified_by": "Administrator",
+  "module": "Nirmaan Stack",
+  "name": "Project Discussion Message",
+  "naming_rule": "Random",
+  "owner": "Administrator",
+  "permissions": [
+   {
+    "create": 1,
+    "delete": 0,
+    "email": 1,
+    "export": 1,
+    "print": 1,
+    "read": 1,
+    "report": 1,
+    "role": "Nirmaan Project Manager Profile",
+    "share": 1,
+    "write": 1,
+    "if_owner": 0
+   },
+    {
+    "create": 1,
+    "delete": 0,
+    "email": 1,
+    "export": 1,
+    "print": 1,
+    "read": 1,
+    "report": 1,
+    "role": "Nirmaan Project Lead Profile",
+    "share": 1,
+    "write": 1,
+    "if_owner": 0
+   },
+   {
+    "create": 1,
+    "delete": 1,
+    "email": 1,
+    "export": 1,
+    "print": 1,
+    "read": 1,
+    "report": 1,
+    "role": "System Manager",
+    "share": 1,
+    "write": 1,
+     "if_owner": 0
+   }
+  ],
+  "apply_user_permissions": {
+     "project": 1
+  },
+  "sort_field": "timestamp",
+  "sort_order": "DESC",
+  "track_changes": 0,
+  "track_seen": 0,
+  "track_views": 0
+ }

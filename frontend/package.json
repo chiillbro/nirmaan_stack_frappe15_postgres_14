@@ -37,6 +37,7 @@
     "@radix-ui/themes": "^3.0.4",
     "@tanstack/match-sorter-utils": "^8.15.1",
     "@tanstack/react-table": "^8.13.2",
+    "@tanstack/react-virtual": "^3.13.6",
     "@types/js-cookie": "^3.0.6",
     "@types/lodash": "^4.17.16",
     "@types/node": "^20.11.19",
@@ -44,7 +45,6 @@
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
     "cmdk": "^1.0.0",
-    "cypress": "^13.7.2",
     "date-fns": "^3.6.0",
     "firebase": "^10.14.1",
     "frappe-react-sdk": "^1.7.0",
@@ -76,9 +76,12 @@
     "@types/react-dom": "^18.2.19",
     "@vitejs/plugin-react": "^4.2.1",
     "autoprefixer": "^10.4.17",
+    "cypress": "^13.7.2",
     "postcss": "^8.4.35",
     "tailwindcss": "^3.4.1",
     "typescript": "^5.2.2",
-    "vite": "^5.1.4"
+    "vite": "^5.1.4",
+    "workbox-build": "^7.1.0",
+    "workbox-window": "^7.1.0"
   }
 }

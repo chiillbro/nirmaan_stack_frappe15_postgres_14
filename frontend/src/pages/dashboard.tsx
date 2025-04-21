@@ -18,6 +18,50 @@ import { useContext } from "react";
 
 export default function Dashboard() {
 
+    // const { socket} = useContext(FrappeContext) as FrappeConfig
+
+    // useEffect(() => {
+    //     // This manual management is usually handled by FrappeProvider.
+    //     // Setting socket.connected = true manually doesn't actually connect it.
+    //     // The SDK manages the connection lifecycle.
+    
+    //     // If you need to react to connection events, use the SDK's socket directly:
+    //     if (socket) {
+    //         const handleConnect = () => {
+    //             console.log("Socket connected (via SDK):", socket.id);
+    //         };
+    //         const handleDisconnect = (reason: Socket.DisconnectReason) => {
+    //             console.log("Socket disconnected (via SDK):", reason);
+    //         };
+    //         const handleConnectError = (err: Error) => {
+    //              console.error("Socket connection error (via SDK):", err);
+    //         };
+    
+    //         // Check if already connected (useful for hot-reloads)
+    //         if (socket.connected) {
+    //             handleConnect();
+    //         }
+    
+    //         socket.on("connect", handleConnect);
+    //         socket.on("disconnect", handleDisconnect);
+    //         socket.on("connect_error", handleConnectError);
+    
+    
+    //         // Cleanup listeners on component unmount
+    //         return () => {
+    //             socket.off("connect", handleConnect);
+    //             socket.off("disconnect", handleDisconnect);
+    //             socket.off("connect_error", handleConnectError);
+    //             // **Do not** call socket.close() here if the socket is managed
+    //             // globally by FrappeProvider, as it might disconnect other components.
+    //             // The provider handles the overall socket lifecycle.
+    //         };
+    //     }
+    // }, [socket]); // Depend on the socket object from the context
+    
+    // console.log("socket from context", socket); // Log the socket from context directly
+    
+
     const { role, has_project } = useUserData()
     const { logout } = useContext(UserContext)
 
